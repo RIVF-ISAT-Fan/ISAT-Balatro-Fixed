@@ -1,410 +1,752 @@
--- Siff
-SMODS.Joker{
-  key = 'siffrin',
-  loc_txt = {
-    name = 'Siffrin',
-	  text = {
-      '{C:red}+#2#{} Mult at end of round',
-      'or when {C:attention}Blind{} is skipped',
-      '{C:inactive}(Currently {C:red}+#1#{} {C:inactive}Mult)',
-	    "{E:1,C:inactive}It's you!",
+SMODS.UndiscoveredSprite({
+    key = "snack",
+    atlas = 'snacks',
+    pos = { x = 1, y = 1 }
+})
+
+SMODS.ConsumableType{
+    key = "snack",
+    primary_colour = HEX("848484"),
+	secondary_colour = HEX("959595"),
+	collection_rows = { 5, 5 },
+	shop_rate = 0.0,
+	loc_txt = {
+        name = "Snack",
+        collection = "Snack Cards",
+        undiscovered = {
+            name = 'Unknown Snack Card',
+            text = {
+                'Find this card in an unseeded',
+                'run to find out what it does'
+            }
+        }
     },
-  },
-  rarity = 3,
-  cost = 7,
-  unlocked = true,
-  discovered = true,
-  blueprint_compat = true,
-  perishable_compat = false, 
-  eternal_compat = true,
-  atlas = 'Jokers',
-  pos = {x = 0, y = 0},
-  config = {mult = 0, mult_bonus = 2,xmult1 = 1.5, xmult2 = 2.5, extra = {loop = true, loopcount = 0, shift = false,phase = 0,targetphase = 0,antephases = {3,7,8},pos_override={x = 0, y = 0}}},
-	process_loc_text = function(self)
-		SMODS.process_loc_text(G.localization.descriptions[self.set], self.key, self.loc_txt)
-		SMODS.process_loc_text(G.localization.descriptions[self.set], "siffrin2", {
-			name = 'Siffrin',
-      text = {
-        '{C:red}+#2#{} Mult at end of round',
-        'or when {C:attention}Blind{} is skipped',
-        '{C:inactive}(Currently {C:red}+#1#{} {C:inactive}Mult)',
-        '{X:mult,C:white}X#3#{} Mult',
-        "{C:inactive}It's you.",
-      },
-		})
-    SMODS.process_loc_text(G.localization.descriptions[self.set], "siffrin3", {
-			name = 'Siffrin',
-      text = {
-        '{C:red}+#1#{} Mult',
-        '{X:mult,C:white}X#3#{} Mult',
-        "{C:inactive}(Finish it.)",
-      },
-		})
-    SMODS.process_loc_text(G.localization.descriptions[self.set], "siffrin4", {
-			name = 'Siffrin',
-      text = {
-        '{C:red}+#2#{} Mult at end of round',
-        '{C:inactive}(Currently {C:red}+#1#{} {C:inactive}Mult)',
-        '{X:mult,C:white}X#3#{} Mult',
-        "{E:1,C:inactive}It's you!!!!",
-      },
-		})
-	end,
-  loc_vars = function(self,info_queue,card)
-    if card.config then
-      if card.ability.extra.phase < 3 and not card.debuff then
-        info_queue[#info_queue + 1] = {generate_ui = isat_tooltip, key = 'timeloop', title = 'Your Wish?',vars = {(card.ability.extra.loop and "Active") or "Inactive"}}
-      end
-      return {key = (card.ability.extra.phase == 1 and "siffrin2" or card.ability.extra.phase == 2 and "siffrin3" or card.ability.extra.phase == 3 and "siffrin4" or card.config.center.key), 
-      vars = {card.ability.mult,card.ability.mult_bonus,((card.ability.extra.phase == 1 or card.ability.extra.phase == 3) and card.ability.xmult1 or card.ability.extra.phase == 2 and card.ability.xmult2)}}
-    else
-      return{vars = {card.ability.mult,card.ability.mult_bonus}}
-    end
-  end,
-	load = function(self, card, card_table, other_card)
-    G.E_MANAGER:add_event(Event({
-      func = function()
-        card.children.center:set_sprite_pos(card.ability.extra.pos_override)
-        return true
-      end
-    }))
-	end,
-  calculate = function(self,card,context)
-    if context.joker_main and card.ability.mult > 0 then
-      return { 
-        colour = G.C.RED,
-        mult = card.ability.mult,
-				Xmult = ((card.ability.extra.phase == 1 or card.ability.extra.phase == 3) and card.ability.xmult1 
-                  or card.ability.extra.phase == 2 and card.ability.xmult2)
-      }
-      end
-    if context.game_over and card.ability.extra.loop and not context.blueprint then
-      unlock_card(G.P_CENTERS["j_isat_loop"])
-      if G.GAME.round_resets.ante == 8 then unlock_card(G.P_CENTERS["j_isat_mal"]) end
-      card.ability.extra.shift = false
-      card.ability.extra.targetphase = 0
-      card.ability.mult = card.ability.mult + card.ability.mult_bonus
-      card.ability.extra.loop = false
-      card.ability.extra.loopcount = card.ability.extra.loopcount + 1
-      G.localization.misc.dictionary.ph_mr_bones = "Loop "..card.ability.extra.loopcount
-      if G.GAME.blind:get_type() == 'Boss' and not G.GAME.looping then G.GAME.round_resets.ante = G.GAME.round_resets.ante-1 end
-      G.GAME.looping = true
-      return {message = 'Loop Back!',sound = "isat_loop", volume = 0.1,colour = G.C.L_BLACK,
-        saved = true}
-    elseif context.isat_cash_out and G.GAME.looping and not context.blueprint then
-      -- undoes loop
-      for i = 1, #G.jokers.cards do
-        if G.jokers.cards[i].config.center.key == 'j_isat_loop' then
-          G.jokers.cards[i].ability.extra.bigover = nil
+	default = "c_isat_pineapple"
+}
+
+-- -- debug
+-- SMODS.Consumable{
+--     key = "debug",
+--     set = 'snack',
+--     loc_txt = {
+--         name = '8',
+--         text = {'ante 8'
+--         }
+--     },
+--     unlocked = true,
+--     atlas = 'snacks',
+--     pos = { x = 0, y = 0 },
+--     cost = 3,
+--     effect = "Enhance",
+--     can_use = function(self, card)
+--         return true
+--     end,
+--     use = function(self, card, area, copier)
+--         G.GAME.round_resets.ante = 8
+--     end,
+-- }
+
+-- plantain
+SMODS.Consumable{
+    key = "plantain",
+    set = 'snack',
+    loc_txt = {
+        name = 'Plantain Chips',
+        text = {
+        "{C:mult}+#1#{} Mult",
+        "{C:green}#2# in #3#{} chance this card is",
+        "destroyed at end of round",
+        '{C:inactive}Crunchy. Delicious.',
+        '{C:inactive}And full of potassium.'
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 0, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    config = {extra = {mult = 10, odds = 4}},
+    loc_vars = function(self,info_queue,center)
+        return {vars = {center.ability.extra.mult, G.GAME.probabilities.normal, center.ability.extra.odds}}
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+        return false
+    end,
+    use = function(self, card, area, copier)
+    end,
+    calculate = function(self,card,context)
+        if context.joker_main and not card.debuff then
+          return { 
+            mult = card.ability.extra and card.ability.extra.mult,
+          }
+        elseif not context.repetition and not context.individual and context.end_of_round and card.ability.name == "c_isat_plantain" then
+            if card.ability.extra and card.ability.extra.odds and 
+            (pseudorandom('plantain') < G.GAME.probabilities.normal/card.ability.extra.odds) then
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        play_sound('tarot1')
+                        card.T.r = -0.2
+                        card:juice_up(0.3, 0.4)
+                        card.states.drag.is = true
+                        card.children.center.pinch.x = true
+                        G.E_MANAGER:add_event(Event({
+                            trigger = 'after',
+                            delay = 0.3,
+                            blockable = false,
+                            func = function()
+                                G.jokers:remove_card(card)
+                                card:remove()
+                                return true
+                            end
+                            }))
+                        return true
+                    end
+                }))
+                return {
+                message = localize('k_extinct_ex')
+                }
+            else
+                return {message = localize('k_safe_ex')}
+            end
         end
-      end
-      G.GAME.looping = nil
-      G.GAME.round_resets.blind_states = G.GAME.round_resets.blind_states or {Small = 'Select', Big = 'Upcoming', Boss = 'Upcoming'}
-      G.GAME.round_resets.blind_states.Small = 'Upcoming'
-      G.GAME.round_resets.blind_states.Big = 'Upcoming'
-      G.GAME.round_resets.blind_states.Boss = 'Upcoming'
-      G.GAME.blind_on_deck = 'Small'
-      card_eval_status_text(card, 'extra', nil, nil, nil,
-              { message = "Ante Reset!", colour = G.C.GREY })
-    elseif context.ending_shop then
-      G.localization.misc.dictionary.ph_mr_bones = card.config.old_bones
-    elseif ((not context.repetition and not context.individual and context.end_of_round) or (context.skip_blind and card.ability.extra.phase < 3)) and not context.blueprint then
-      if G.GAME.blind:get_type() == 'Boss' and card.ability.extra.phase < 3 then card.ability.extra.loop = true
-      elseif card.ability.extra.phase == 3 and card.ability.extra.loop then card.ability.extra.loop = false end
-      card.ability.mult = card.ability.mult + card.ability.mult_bonus
-      if card.ability.extra.phase ~= 2 then 
-        card_eval_status_text(card, 'extra', nil, nil, nil, {colour = G.C.RED, message = localize{ type = 'variable', key = 'a_mult', vars = { card.ability.mult } } }) end
-    end
-    -- handles card art shift
-    if context.isat_cash_out and card.ability.extra.shift and not context.blueprint then
-      card.ability.extra.shift = false
-      return {
+    end      
+}
+
+-- cookies
+SMODS.Consumable{
+    key = "cookies",
+    set = 'snack',
+    loc_txt = {
+        name = 'Cookies',
+        text = {
+        "Removes one selected {C:attention}Joker{}'s",
+        '{C:dark_edition}Edition{} + {C:attention}Stickers{} and',
+        "raises it's {C:attention}Sell Value{} by {C:money}$#1#{}",
+        '{C:inactive}Boring but delicious!!!'
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 1, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    config = {extra = 5},
+    loc_vars = function(self,info_queue,center)
+        return {vars = {center.ability.extra}}
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+        return #G.jokers.highlighted == 1
+    end,
+    use = function(self, card, area, copier)
+        G.jokers.highlighted[1].ability.extra_value = (G.jokers.highlighted[1].ability.extra_value or 0) + card.ability.extra
+        G.jokers.highlighted[1]:set_cost()
+        card_eval_status_text(G.jokers.highlighted[1], 'extra', nil, nil, nil, {message = localize('k_val_up'),colour = G.C.MONEY,})
+        local edition = {foil = false, holo = false, polychrome = false, negative = false}
+        delay(0.2)
+        G.jokers.highlighted[1].ability.eternal = false
+        G.jokers.highlighted[1].ability.rental = false
+        G.jokers.highlighted[1].ability.perishable = false
+        G.jokers.highlighted[1]:set_edition(edition, true)
+        local loop = nil
+        for i = 1, #G.jokers.cards do
+            if G.jokers.cards[i].config.center.key == 'j_isat_loop_boss' then
+                loop = true
+            end
+        end
+        if G.jokers.highlighted[1].ability.perish_tally and G.jokers.highlighted[1].ability.perish_tally <= 0 and not loop then
+            G.jokers.highlighted[1].debuff = false
+        end
         G.E_MANAGER:add_event(Event({
-          func = function()
-            G.E_MANAGER:add_event(Event({
-              func = function()
-                card.ability.mult_bonus = (card.ability.extra.targetphase == 3 and 2) or 2 - card.ability.extra.targetphase
-                card.ability.extra.phase = card.ability.extra.targetphase
-                card.ability.extra.pos_override.x = card.ability.extra.phase
-                card.children.center:set_sprite_pos(card.ability.extra.pos_override)
-                return true
-              end
-            }))
-            G.E_MANAGER:add_event(Event({
-              func = function()
-                trigger = 'after'
-                local delay = 0.6
-                play_sound('isat_shift',1,0.15)
-                if not extra or not extra.no_juice then
-                  card:juice_up(0.6, 0.1)
-                end
-                return true
-              end
-            }))
-            return true
-          end
-        }))
-      }
-    -- checks if it should shift after the round
-    elseif context.first_hand_drawn and not context.blueprint then
-      if G.GAME.blind and G.GAME.blind:get_type() == 'Boss' then
-        for i = 1, #card.ability.extra.antephases do
-          if G.GAME.round_resets.ante >= card.ability.extra.antephases[i] then
-            card.ability.extra.targetphase = i
-          end
-        end
-        if card.ability.extra.phase < card.ability.extra.targetphase then
-          card.ability.extra.shift = true
-        end
-      end
-    -- -1 ante shift
-    elseif context.isat_voucher and not context.blueprint then
-      if card.ability.extra.phase == 0 and G.GAME.used_vouchers.v_hieroglyph then
-        card.ability.extra.targetphase = 1
-      elseif card.ability.extra.phase == 1 and G.GAME.used_vouchers.v_petroglyph then
-        card.ability.extra.targetphase = 2
-      end
-      if (card.ability.extra.phase == 0 and G.GAME.used_vouchers.v_hieroglyph) or (card.ability.extra.phase == 1 and G.GAME.used_vouchers.v_petroglyph) then
-        return {
-          G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
             func = function()
-              G.E_MANAGER:add_event(Event({
-                func = function()
-                  card.ability.mult_bonus = (card.ability.extra.targetphase == 3 and 2) or 3 - card.ability.extra.targetphase
-                  card.ability.extra.phase = card.ability.extra.targetphase
-                  card.ability.extra.pos_override.x = card.ability.extra.phase
-                  card.children.center:set_sprite_pos(card.ability.extra.pos_override)
-                  return true
-                end
-              }))
-              G.E_MANAGER:add_event(Event({
-                func = function()
-                  trigger = 'after'
-                  local delay = 1.6
-                  play_sound('isat_shift',1,0.15)
-                  if not extra or not extra.no_juice then
-                    card:juice_up(0.6, 0.1)
-                  end
-                  return true
-                end
-              }))
-              return true
-            end
-          }))
-        }
-      end
-    end
-    -- snack unlock
-    if context.end_of_round and G.GAME.blind:get_type() == 'Boss' and G.GAME.round_resets.ante == G.GAME.win_ante then
-      local siff = nil
-      local bonnie = nil
-      for i = 1, #G.jokers.cards do
-        if G.jokers.cards[i].config.center.key == 'j_isat_siffrin' then
-            siff = true
-        elseif G.jokers.cards[i].config.center.key == 'j_isat_bonnie' then
-            bonnie = true
-        end
-      end
-      if siff and bonnie then
-        unlock_card(G.P_CENTERS["c_isat_eternal"])
-      end
-    end
-  end,
-  -- incase the win ante isnt 8 for some reason
-  add_to_deck = function(self, card, from_debuff)
-    card.ability.extra.antephases[2] = G.GAME.win_ante-1
-    card.ability.extra.antephases[3] = G.GAME.win_ante
-  end,
-}
-
--- Mira
-SMODS.Joker{
-  key = 'mira',
-  loc_txt = {
-    name = 'Mirabelle',
-	  text = {
-      'Played Debuffed Cards',
-      'become {C:attention}Undebuffed',
-	    '{E:1,C:inactive}The Housemaiden!'
-    },
-  },
-  rarity = 2,
-  cost = 5,
-  unlocked = true,
-  discovered = true,
-  blueprint_compat = false,
-  perishable_compat = true, 
-  eternal_compat = true,
-  atlas = 'Jokers',
-  pos = {x = 4, y = 0},
-  config = {extra = {}},
-  calculate = function(self,card,context)
-    if context.isat_press_play then
-      G.E_MANAGER:add_event(Event({
-        func = function()
-          for k, v in ipairs(G.play.cards) do
-            if v.debuff then 
-              G.E_MANAGER:add_event(Event({
-                func = function()
-                  v.debuff = false
-                  card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Undebuffed!"})
-                  return true
-                end
-              })) 
-            end
-          end
-          return true
-        end
-      })) 
-    end
-  end,
-}
-
--- Isa
-SMODS.Joker{
-  key = 'isa',
-  loc_txt = {
-    name = 'Isabeau',
-	  text = {
-      'This Joker gains {X:mult,C:white}X#2#{} Mult',
-      'when a {C:attention}King{} is scored,',
-      'Resets at end of round',
-      '{C:inactive}(Currently {X:mult,C:white}X#1#{C:inactive} Mult)',
-	    '{E:1,C:inactive}The Fighter!'
-    },
-  },
-  rarity = 2,
-  cost = 6,
-  unlocked = true,
-  discovered = true,
-  blueprint_compat = true,
-  perishable_compat = true, 
-  eternal_compat = true,
-  atlas = 'Jokers',
-  pos = {x = 5, y = 0},
-  config = {Xmult = 1, Xmult_bonus = 0.4, extra = {}},
-  loc_vars = function(self,info_queue,card)
-    return {vars = {card.ability.Xmult,card.ability.Xmult_bonus}}
-  end,
-  calculate = function(self,card,context)
-    if context.joker_main and card.ability.Xmult > 1 then
-      return { 
-        colour = G.C.RED,
-        Xmult = card.ability.Xmult,
-      }
-    elseif context.individual and context.cardarea == G.play then
-      if context.other_card and context.other_card:get_id() == 13 and not context.blueprint then
-        card.ability.Xmult = card.ability.Xmult + card.ability.Xmult_bonus           
-        return {
-            extra = {focus = card, message = localize('k_upgrade_ex'),colour = G.C.MULT},
-            card = card,
-        }
-      end
-    elseif not context.repetition and not context.individual and not card.ability.extra.jason
-    and context.end_of_round and not context.blueprint then
-      card_eval_status_text(card, 'extra', nil, nil, nil, {message = localize('k_reset')})
-      card.ability.Xmult = 1
-    end
-  end,
-}
-
--- Odile
-SMODS.Joker{
-  key = 'odile',
-  loc_txt = {
-    name = 'Odile',
-	  text = {
-      'Reduces Blind',
-      'Requirement by {C:attention}#1#%',
-      'when playing a {C:blue}Hand',
-	    '{E:1,C:inactive}The Researcher!'
-    },
-  },
-  rarity = 2,
-  cost = 6,
-  unlocked = true,
-  discovered = true,
-  blueprint_compat = true,
-  perishable_compat = true, 
-  eternal_compat = true,
-  atlas = 'Jokers',
-  pos = {x = 6, y = 0},
-  config = {extra = 25},
-  loc_vars = function(self,info_queue,card)
-    return {vars = {card.ability.extra}}
-  end,
-  calculate = function(self,card,context)
-    if context.before then 
-      card_eval_status_text(card, 'extra', nil, nil, nil,
-                        { message = "Blind Lowered!", colour = G.C.GREY })
-      G.E_MANAGER:add_event(Event({
-        func = function()
-          G.GAME.blind.chips = math.floor(G.GAME.blind.chips*0.01*(100-card.ability.extra))
-          G.GAME.blind.chip_text = number_format(G.GAME.blind.chips)
-          G.hand_text_area.blind_chips:juice_up()
-          return true
-        end
-      })) 
-    end
-  end,
-}
-
--- Bonnie
-SMODS.Joker{
-  key = 'bonnie',
-  loc_txt = {
-    name = 'Bonnie',
-	  text = {
-      'Create a {C:snack}Snack{} card',
-      'when {C:attention}Cashing Out{}',
-	    "{C:inactive}That's just a kid!!!"
-    },
-  },
-  rarity = 1,
-  cost = 5,
-  unlocked = true,
-  discovered = true,
-  blueprint_compat = true,
-  perishable_compat = true, 
-  eternal_compat = true,
-  atlas = 'Jokers',
-  pos = {x = 7, y = 0},
-  config = {extra = {}},
-  loc_vars = function(self,info_queue,card)
-    if card.ability.extra.rice then
-      info_queue[#info_queue + 1] = {generate_ui = isat_tooltip, key = 'onigiri2', title = 'Good Snack'}
-    end
-  end,
-  calculate = function(self,card,context)
-    if context.isat_cash_out and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-      local rice_bonus = 0
-      if card.ability.extra.rice then 
-        rice_bonus = 1 
-        card.ability.extra.rice = nil
-      end
-      G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1+rice_bonus
-      G.E_MANAGER:add_event(Event({
-        func = (function()
-          for i = 1, 1+rice_bonus do
-            local _card = create_card('snack',G.consumeables, nil, nil, nil, nil, nil, 'bon')
             G.E_MANAGER:add_event(Event({
-              func = function() 
-                _card:add_to_deck()
-                G.consumeables:emplace(_card)
-                G.GAME.consumeable_buffer = 0
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
                 return true
-              end})) 
-            if _card.ability.name == "c_isat_onigiri" then
-              card_eval_status_text(context.blueprint_card or card, 'extra', nil, nil, nil, {
-                message = pseudorandom_element({"Oginiri...", "Orinigi...", "Onion-geeree."},pseudoseed('onigiri')), colour = HEX('848484'), delay = 1.25})
-            else card_eval_status_text(context.blueprint_card or card, 'extra', nil, nil, nil, {
-                message = _card.config.center.loc_txt.name .. "!!", colour = HEX('848484'), delay = 1.25})
             end
-          end
-        return true
-      end)}))
-    elseif context.ending_shop then
-      card.ability.extra.rice = nil
+        }))
+    end,
+}
+
+-- onigiri
+SMODS.Consumable{
+    key = "onigiri",
+    set = 'snack',
+    loc_txt = {
+        name = 'Onigiri',
+        text = {
+        'Gives +1 {C:red}Discard{} this round',
+        'for every #1# {C:attention}Jokers',
+        '{C:inactive}(Currently {}+#2#{C:inactive})',
+        '{C:inactive}I. Love. Rice.'
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 2, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    config = {extra = 2},
+    loc_vars = function(self,info_queue,center)
+        info_queue[#info_queue + 1] = {generate_ui = isat_tooltip, set='ISAT', key = 'onigiri', title = 'Favourite!'}
+        return {vars = {center.ability.extra, math.floor(((G.jokers and #G.jokers.cards) or 0)/center.ability.extra)}}
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+        return #G.jokers.cards >= card.ability.extra and
+        (G.GAME.round_resets.blind_states.Small == 'Current' 
+        or G.GAME.round_resets.blind_states.Big == 'Current' 
+        or G.GAME.round_resets.blind_states.Boss == 'Current')
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+            play_sound('timpani')
+            card:juice_up(0.3, 0.5)
+            ease_discard(math.floor(#G.jokers.cards/card.ability.extra))
+            return true end }))
+        delay(0.6)
+        for i = 1, #G.jokers.cards do
+            if G.jokers.cards[i].config.center.key == 'j_isat_bonnie' then
+              G.jokers.cards[i].ability.extra.rice = true
+              G.jokers.cards[i]:juice_up()
+            end
+        end
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+            G.E_MANAGER:add_event(Event({
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
+                return true
+            end
+        }))
+    end,
+}
+
+-- Madeleines
+SMODS.Consumable{
+    key = "madeleines",
+    set = 'snack',
+    loc_txt = {
+        name = 'Madeleines',
+        text = {
+        "Adds {C:dark_edition}Polychrome{} edition",
+        "to a random {C:attention}Joker",
+        "and makes them {C:eternal}Eternal{}",
+        '{C:inactive}Some madeleines!!!'
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 3, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    loc_vars = function(self,info_queue,center)
+        info_queue[#info_queue + 1] = G.P_CENTERS.e_polychrome
+        info_queue[#info_queue + 1] = {key = 'eternal', set = 'Other'}
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+        for i = 1, #G.jokers.cards do
+            if G.jokers and not G.jokers.cards[i].edition and not G.jokers.cards[i].ability.eternal 
+            and G.jokers.cards[i].config.center.eternal_compat and not G.jokers.cards[i].ability.perishable then 
+                return true 
+            end
+        end
+        return false
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+            G.E_MANAGER:add_event(Event({
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
+                return true
+            end
+        }))
+        local j_list = {}
+        for k,v in pairs(G.jokers.cards) do
+            j_list[k] = v
+        end
+        pseudoshuffle(j_list)
+        for i = 1, #j_list do
+            if not j_list[i].ability.eternal and j_list[i].config.center.eternal_compat and not j_list[i].ability.perishable and not j_list[i].edition then
+                for j = 1, #G.jokers.cards do
+                    if G.jokers.cards[j] == j_list[i] then
+                        G.jokers.cards[j]:set_edition({polychrome = true})
+                        G.jokers.cards[j]:set_eternal({true})
+                        return
+                    end
+                end
+            end
+        end
+    end,
+}
+
+-- Pineapple
+SMODS.Consumable{
+    key = "pineapple",
+    set = 'snack',
+    loc_txt = {
+        name = 'Pineapple Slices',
+        text = {
+        'Selected Joker becomes {C:dark_edition}Negative{}',
+        '{C:green}#1# in #2#{} chance to {C:attention}destroy{} Joker instead',
+        "{C:inactive}With sugar.",
+        "{C:inactive}That's what makes them good."
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 4, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    config = {extra = 4},
+    loc_vars = function(self,info_queue,center)
+        info_queue[#info_queue + 1] = {generate_ui = isat_tooltip, set='ISAT', key = 'pineapple', title = 'Allergy'}
+        return {vars = {3*G.GAME.probabilities.normal, center.ability.extra}}
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+		return #G.jokers.highlighted == 1 and (not G.jokers.highlighted[1].edition or not G.jokers.highlighted[1].edition.negative) and not G.jokers.highlighted[1].ability.eternal
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+            G.E_MANAGER:add_event(Event({
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
+                return true
+            end
+        }))
+        local siff = 0
+        if G.jokers.highlighted[1].ability.name == "j_isat_siffrin" then siff = 1 end
+        if pseudorandom('pineapple') < (siff+3*G.GAME.probabilities.normal)/card.ability.extra then
+            G.E_MANAGER:add_event(Event({
+                func = function()
+                  play_sound('tarot1')
+                  G.jokers.highlighted[1].T.r = -0.2
+                  G.jokers.highlighted[1]:juice_up(0.3, 0.4)
+                  G.jokers.highlighted[1].states.drag.is = true
+                  G.jokers.highlighted[1].children.center.pinch.x = true
+                  G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.3,
+                    blockable = false,
+                    func = function()
+                    card_eval_status_text(G.jokers.highlighted[1], 'extra', nil, nil, nil,
+                        { message = "Tasted good, though.", colour = HEX("848484"), delay = 2 })
+                        G.jokers.highlighted[1]:remove()
+                        return true
+                    end
+                    }))
+                  return true
+                  end
+              }))
+              return
+        else
+            G.jokers.highlighted[1]:set_edition({negative = true})
+        end
+    end,
+}
+
+-- Fish Head
+SMODS.Consumable{
+    key = "fish",
+    set = 'snack',
+    loc_txt = {
+        name = 'Fish Head',
+        text = {
+        'Destroy a selected {C:attention}Joker',
+        'and create a new {C:attention}Joker',
+        'of the same {C:attention}rarity',
+        '{E:1,s:1.1,C:inactive}FISH HEAD!!!!!!!!!!!!!!'
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 5, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+        return #G.jokers.highlighted == 1
+		and not G.jokers.highlighted[1].ability.eternal
+    end,
+    use = function(self, card, area, copier)
+        local rarity = G.jokers.highlighted[1].config.center.rarity
+        local legendary = nil
+        if rarity == 1 then
+			rarity = 0
+		elseif rarity == 2 then
+			rarity = 0.9
+		elseif rarity == 3 then
+			rarity = 0.99
+		elseif rarity == 4 then
+            legendary = true
+        end
+        local _first_dissolve = nil
+        G.E_MANAGER:add_event(Event({
+            trigger = "before",
+            delay = 0.75,
+            func = function()
+                G.jokers.highlighted[1]:start_dissolve(nil, _first_dissolve)
+                _first_dissolve = true
+                return true
+            end,
+        }))
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 0.4,
+            func = function()
+                play_sound("timpani")
+                local card = create_card("Joker", G.jokers, legendary, rarity, nil, nil, nil, "snack")
+                card:add_to_deck()
+                G.jokers:emplace(card)
+                card:juice_up(0.3, 0.5)
+                return true
+            end,
+        }))
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+            G.E_MANAGER:add_event(Event({
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
+                return true
+            end
+        }))
+    end,
+}
+
+create_samosa_joker = function(pseed)
+    local samosa_keys = {}
+    for k, v in pairs(G.P_CENTERS) do
+      if v.perishable_compat and v.unlocked and not (v.rarity == 4) and not(not next(find_joker("Showman")) and G.GAME.used_jokers[v.key]) then
+        table.insert(samosa_keys, v.key)
+      end
     end
-  end,
+    local samosa_key = "j_joker"
+    local create_args = {set = "Joker", area = G.jokers, key = ''}
+    
+    if #samosa_keys > 0 then
+      samosa_key = pseudorandom_element(samosa_keys, pseudoseed(G.GAME.pseudorandom.seed))
+    end
+    return samosa_key
+end
+  
+-- Samosas
+SMODS.Consumable{
+    key = "samosas",
+    set = 'snack',
+    loc_txt = {
+        name = 'Samosas',
+        text = {
+        'Create up to {C:attention}#1#',
+        '{C:perishable}Perishable{C:attention} Jokers',
+        '{C:inactive}Leftover. A little burnt.'
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 6, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    config = {extra = 2},
+    loc_vars = function(self,info_queue,center)
+        info_queue[#info_queue + 1] = {key = 'perishable', set = 'Other', vars = {G.GAME.perishable_rounds or 1, G.GAME.perishable_rounds}} 
+        return {vars = {center.ability.extra}}
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+        return G.jokers.config.card_limit - #G.jokers.cards > 0
+    end,
+    use = function(self, card, area, copier)
+        local jokers_to_create = math.min(card.ability.extra, G.jokers.config.card_limit - #G.jokers.cards)
+        G.E_MANAGER:add_event(Event({
+            func = function() 
+                for i = 1, jokers_to_create do
+                    local _card = create_card('Joker', G.jokers, nil, 0, nil, nil,
+                    create_samosa_joker(), nil)
+                    _card:set_perishable(true)
+                    _card:add_to_deck()
+                    G.jokers:emplace(_card)
+                    _card:start_materialize()
+                end
+            return true
+        end}))
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+            G.E_MANAGER:add_event(Event({
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
+                return true
+            end
+        }))
+    end,
+}
+
+-- Palmiers
+SMODS.Consumable{
+    key = "palmiers",
+    set = 'snack',
+    loc_txt = {
+        name = 'Palmiers',
+        text = {
+        '{C:attention}+1{} hand size this round for',
+        'every #1# {C:attention}Jokers  {C:inactive}(Currently {C:attention}+#2#{C:inactive})',
+        "{C:inactive}They're yummy, they're crunchy,",
+        "{C:inactive}they get crumbs everywhere."
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 7, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    config = {extra = 2},
+    loc_vars = function(self,info_queue,center)
+        return {vars = {center.ability.extra, math.floor(((G.jokers and #G.jokers.cards) or 0)/center.ability.extra)}}
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+        return #G.jokers.cards >= card.ability.extra and
+        (G.GAME.round_resets.blind_states.Small == 'Current' 
+        or G.GAME.round_resets.blind_states.Big == 'Current' 
+        or G.GAME.round_resets.blind_states.Boss == 'Current')
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+            play_sound('timpani')
+            card:juice_up(0.3, 0.5)
+            card_eval_status_text(card, 'extra', nil, nil, nil, {colour = G.C.RED, message = localize{type='variable',key='a_handsize',vars={math.floor(#G.jokers.cards/card.ability.extra)}},colour = G.C.FILTER })
+            G.hand:change_size(math.floor(#G.jokers.cards/card.ability.extra))
+            G.GAME.Palmiers = (G.GAME.Palmiers or 0) + math.floor(#G.jokers.cards/card.ability.extra)
+            return true end }))
+        G.E_MANAGER:add_event(Event({
+			trigger = "after",
+			func = function()
+				G.STATE = G.STATES.DRAW_TO_HAND
+				return true
+			end
+		}))
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+            G.E_MANAGER:add_event(Event({
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
+                return true
+            end
+        }))
+    end,
+    calculate = function(self,card,context)
+        if not context.repetition and not context.individual and context.end_of_round and G.GAME.Palmiers then
+            G.hand:change_size(-G.GAME.Palmiers)
+            G.GAME.Palmiers = nil
+        end
+    end    
+}
+
+-- Fritters
+SMODS.Consumable{
+    key = "fritters",
+    set = 'snack',
+    loc_txt = {
+        name = 'Malanga Fritters',
+        text = {
+        'Gives {C:money}${} equal to',
+        "selected Joker's sell",
+        'value {C:attention}Multiplied{} by {C:attention}5',
+        "{C:inactive}(Max of {C:money}$#1#{C:inactive})",
+        "{C:inactive}Frin's drooling."
+        }
+    },
+    unlocked = true,
+    atlas = 'snacks',
+    pos = { x = 8, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    config = {extra = 40},
+    loc_vars = function(self,info_queue,center)
+        return {vars = {center.ability.extra}}
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+		return #G.jokers.highlighted == 1
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+            play_sound('timpani')
+            card:juice_up(0.3, 0.5)
+            ease_dollars(math.min(G.jokers.highlighted[1].sell_cost*5,card.ability.extra), true)
+            return true end }))
+        delay(0.6)
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+            G.E_MANAGER:add_event(Event({
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
+                return true
+            end
+        }))
+    end,
+}
+
+-- Eternal Snacks
+SMODS.Consumable{
+    key = "eternal",
+    set = 'snack',
+    loc_txt = {
+        name = 'Eternal Snacks',
+        text = {
+            "Creates the last used {C:snack}Snack{} card",
+            "{s:0.85,C:snack}Eternal Snacks{s:0.85} excluded",
+        },
+        unlock = {
+            "Clear a run with both",
+            "{C:snack}Siffrin{} and {C:snack}Bonnie{} Together"
+        }
+    },
+    unlocked = false,
+	unlock_condition = {type = 'win_custom'},
+    atlas = 'snacks',
+    pos = { x = 9, y = 0 },
+    cost = 3,
+    effect = "Enhance",
+    config = {},
+    generate_ui = function(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
+        SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
+        local eternal_c = G.GAME.last_snack and G.P_CENTERS[G.GAME.last_snack] or nil
+        local last_snack = (eternal_c and eternal_c.loc_txt.name) or localize('k_none')
+        local colour = (not eternal_c or eternal_c.name == "c_isat_eternal") and G.C.RED or G.C.GREEN
+        main_end = {
+            {n=G.UIT.C, config={align = "bm", padding = 0.02}, nodes={
+                {n=G.UIT.C, config={align = "m", colour = colour, r = 0.05, padding = 0.05}, nodes={
+                    {n=G.UIT.T, config={text = ' '..last_snack..' ', colour = G.C.UI.TEXT_LIGHT, scale = 0.3, shadow = true}},
+                }}
+            }}
+        }
+        if not (not eternal_c or eternal_c.name == "c_isat_eternal") then
+            info_queue[#info_queue+1] = eternal_c
+        end
+        desc_nodes[#desc_nodes+1] = main_end 
+        desc_nodes[#desc_nodes+1] = {
+            {n=G.UIT.C, config={align = "bm"}, nodes={
+                {n=G.UIT.C, config={align = "m", r = 0.05}, nodes={
+                    {n=G.UIT.T, config={text = "Wh-- How did those get there?!", colour = G.C.UI.TEXT_INACTIVE, scale = 0.3, shadow = false}},
+                }}
+            }}
+        }
+    end,
+    set_ability = function(self, card, initial, delay_sprites)
+        local scale = 1
+        card.children.center.scale.y = (78/95)*card.children.center.scale.y
+        card.T.h = card.T.h*(78/95)*scale
+    end,
+    can_use = function(self, card)
+        if (#G.consumeables.cards < G.consumeables.config.card_limit or card.area == G.consumeables)
+		and G.GAME.last_snack and G.P_CENTERS[G.GAME.last_snack].name ~= "c_isat_eternal" then
+            return true
+        end
+    end,
+    use = function(self, card, area, copier)
+        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+            if G.consumeables.config.card_limit > #G.consumeables.cards then
+                play_sound('timpani')
+                local card = create_card('isat_snack', G.consumeables, nil, nil, nil, nil, G.GAME.last_snack, 'snack')
+                card:add_to_deck()
+                G.consumeables:emplace(card)
+                card:juice_up(0.3, 0.5)
+            end
+            return true end }))
+        delay(0.6)
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+            G.E_MANAGER:add_event(Event({
+                trigger = 'immediate',
+                func = function()
+                G.GAME.last_snack = card.config.center_key
+                    return true
+                end
+            }))
+                return true
+            end
+        }))
+    end
 }

@@ -202,7 +202,7 @@ SMODS.Consumable{
     effect = "Enhance",
     config = {extra = 2},
     loc_vars = function(self,info_queue,center)
-        info_queue[#info_queue + 1] = {generate_ui = isat_tooltip, key = 'onigiri', title = 'Favourite!'}
+        info_queue[#info_queue + 1] = {generate_ui = isat_tooltip, set='ISAT', key = 'onigiri', title = 'Favourite!'}
         return {vars = {center.ability.extra, math.floor(((G.jokers and #G.jokers.cards) or 0)/center.ability.extra)}}
     end,
     set_ability = function(self, card, initial, delay_sprites)
@@ -334,7 +334,7 @@ SMODS.Consumable{
     effect = "Enhance",
     config = {extra = 4},
     loc_vars = function(self,info_queue,center)
-        info_queue[#info_queue + 1] = {generate_ui = isat_tooltip, key = 'pineapple', title = 'Allergy'}
+        info_queue[#info_queue + 1] = {generate_ui = isat_tooltip, set='ISAT', key = 'pineapple', title = 'Allergy'}
         return {vars = {3*G.GAME.probabilities.normal, center.ability.extra}}
     end,
     set_ability = function(self, card, initial, delay_sprites)
