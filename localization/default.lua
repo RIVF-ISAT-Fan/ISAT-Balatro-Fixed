@@ -1,16 +1,18 @@
 return {
-	["descriptions"] = {
-		["ISAT"] = {
-			['timeloop'] = {
-				["text"] = {
+	descriptions = {
+		ISAT = {
+			timeloop = {
+				name = "Your Wish?",
+				text = {
 					"{E:1,C:inactive}[You're stuck in a time loop!]",
-					'Once per ante when hitting {C:red}Game Over',
-					'return to the beginning of the ante!',
-					'{C:inactive}[Currently {C:red}#1#{C:inactive}]'
+					"Once per ante when hitting {C:red}Game Over",
+					"return to the beginning of the ante!",
+					"{C:inactive}[Currently {C:red}#1#{C:inactive}]"
 				},
 			},
-			['onigiri'] = {
-				["text"] = {
+			onigiri = {
+				name = "Onigiri",
+				text = {
 					"{C:inactive}(So Bonnie likes",
 					"{C:inactive}rice, huh...)",
 					'If used when {C:snack}Bonnie{}',
@@ -18,15 +20,17 @@ return {
 					'{C:snack}Snack{} cards instead of {C:attention}1'
 				},
 			},
-			['onigiri2'] = {
-				["text"] = {
+			onigiri2 = {
+				name = "Bonnie",
+				text = {
 					"{C:inactive}Hmf.",
 					'Will make {C:attention}2 {C:snack}Snack{}',
 					'cards instead of {C:attention}1'
 				},
 			},
-			['pineapple'] = {
-				["text"] = {
+			pineapple = {
+				name = 'Pineapple Slices',
+				text = {
 					"{E:1,C:inactive}Don't eat pineapples!",
 					"{E:1,C:inactive}You're allergic.",
 					'If used on {C:snack}Siffrin{}, they',
